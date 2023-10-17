@@ -4,33 +4,62 @@ import './App.css';
 import { Link } from "react-router-dom";
 
 export default function Home() {
-
-  const [person, setPerson] = useState([]);
+  const API = "https://rickandmortyapi.com/api/character/?status=alive"
   const [buscar, setBuscar] = useState("");
+  const [status, setStatus] = useState("Alive");
+  const [dados, setDados] = useState([]);
 
   useEffect(() => {
-
-    const buscarPerson = async (buscar) => {
-      try {
-        const API = buscar
-          ? `https://rickandmortyapi.com/api/character/?name=${buscar}`
-          : "https://rickandmortyapi.com/api/character";
-        const res = await axios.get(API);
-        const dados = (res.data.results);
-        setPerson(dados);
-      }
-      catch (error) {
-        console.error('Error', error);
-      }
-    }
-
-    buscarPerson(buscar);
-
-  }, [buscar])
+    axios.get(`${API}`)
+      .then(response => {
+        setDados(response.data.results);
+      })
+      .catch(error => {
+        console.error('Error fetching API URLs:', error);
+      });
+  }, [])
 
   const buscarPesquisa = (e) => {
     setBuscar(e.target.value);
   }
+
+  const mostrarPersonagem = (id) => {
+    const ENDPOINT = `https://rickandmortyapi.com/api/character/${id}`
+    axios.get(`${ENDPOINT}`)
+      .then(response => {
+        setPersonagem(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching API URLs:', error);
+      });
+    setMostrarDados(true)
+  }
+
+  const mudarNome = (nome) => {
+
+    const ENDPOINT = `https://rickandmortyapi.com/api/character/?name=${nome}&status=${status}`
+    axios.get(`${ENDPOINT}`)
+      .then(response => {
+        setDados(response.data.results);
+      })
+      .catch(error => {
+        console.error('Error fetching API URLs:', error);
+      });
+  }
+
+  const mudarStatus = (event) => {
+    setStatus(event.target.value);
+    const ENDPOINT = `https://rickandmortyapi.com/api/character/?status=${event.target.value}`
+    axios.get(`${ENDPOINT}`)
+      .then(response => {
+        setDados(response.data.results);
+      })
+      .catch(error => {
+        console.error('Error fetching API URLs:', error);
+      });
+  };
+
+
 
   return (
     <div className="container" >
@@ -44,7 +73,15 @@ export default function Home() {
           value={buscar}
           onChange={buscarPesquisa}
         />
-        {person && person.map((e, index) => (
+        <button class="botao-pesquisar" onClick={() => mudarNome(buscar)}>Pesquisar</button>
+
+        <select value={status} onChange={mudarStatus}>
+          <option value="Alive">Vivo</option>
+          <option value="Dead">Morto</option>
+          <option value="unknown">Desconhecido</option>
+        </select>
+
+        {dados.map((e, index) => (
           <Link className="link" key={index} to={`/personagem/${e.id}`} >
             <div >
               <div className="card" >
@@ -57,5 +94,4 @@ export default function Home() {
       </div>
     </div >
   )
-
 }
